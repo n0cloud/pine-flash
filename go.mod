@@ -1,4 +1,4 @@
-module github.com/N0Cloud/p2_updater
+module github.com/N0Cloud/pine-flash
 
 go 1.19
 
