@@ -3,6 +3,7 @@ package blclient
 import (
 	"bytes"
 	"encoding/hex"
+	"io"
 	"sync"
 	"time"
 
@@ -205,4 +206,84 @@ func (blc *BLClient) ReadJedecId() ([]byte, error) {
 	}
 	blc.logInfo("ReadJedecId: %s", hex.EncodeToString(data))
 	return data, nil
+}
+
+func (blc *BLClient) LoadBootHeader(r io.Reader) (n int, err error) {
+	cmd := make([]byte, 180)
+	cmd[0] = cmdLoadBootHeader
+	cmd[1] = 0x00
+	cmd[2] = 0xb0
+	cmd[3] = 0x00
+	n, err = r.Read(cmd[4:])
+	if err != nil {
+		return n, err
+	}
+	if n != 176 {
+		return n, ErrInvalidBootHeader
+	}
+
+	_, err = blc.TryCommand(cmd, 0)
+	if err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
+func (blc *BLClient) LoadSegmentHeader(r io.Reader) (n int, err error) {
+	cmd := make([]byte, 20)
+	cmd[0] = cmdLoadSegmentHeader
+	cmd[1] = 0x00
+	cmd[2] = 0x10
+	cmd[3] = 0x00
+	n, err = r.Read(cmd[4:])
+	if err != nil {
+		return n, err
+	}
+	if n != 16 {
+		return n, ErrInvalidSegmentHeader
+	}
+
+	_, err = blc.TryCommand(cmd, 18)
+	if err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
+func (blc *BLClient) LoadSegmentData(r io.Reader) (n int, err error) {
+	cmd := make([]byte, 2052) // 4 + 2048
+	n, err = r.Read(cmd[4:])
+	if err != nil {
+		return n, err
+	}
+	if n == 0 {
+		return 0, io.EOF
+	}
+
+	cmd[0] = cmdLoadSegmentData
+	cmd[1] = 0x00
+	cmd[2] = byte(n & 0xff)
+	cmd[3] = byte((n & 0xff00) >> 8)
+
+	_, err = blc.TryCommand(cmd[:n+4], 0)
+	if err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
+func (blc *BLClient) CheckImage() error {
+	_, err := blc.TryCommand([]byte{cmdCheckImage, 0x00, 0x00, 0x00}, 0)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (blc *BLClient) RunImage() error {
+	_, err := blc.TryCommand([]byte{cmdRunImage, 0x00, 0x00, 0x00}, 0)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -5,7 +5,11 @@ import (
 	"fmt"
 )
 
-var ErrInvalidResponse = errors.New("invalid response")
+var (
+	ErrInvalidResponse      = errors.New("invalid response")
+	ErrInvalidBootHeader    = errors.New("invalid boot header")
+	ErrInvalidSegmentHeader = errors.New("invalid segment header")
+)
 
 var _ BlfbResponseError[ErrCodeFlash] = &blfbResponseError[ErrCodeFlash]{}
 

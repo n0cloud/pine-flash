@@ -7,6 +7,7 @@ const (
 	cmdLoadSegmentHeader = 0x17
 	cmdLoadSegmentData   = 0x18
 	cmdCheckImage        = 0x19
+	cmdRunImage          = 0x1A
 	cmdMemWrite          = 0x50
 	cmdReadJedecid       = 0x36
 	cmdFlashErase        = 0x30
